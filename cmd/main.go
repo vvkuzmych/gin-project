@@ -17,7 +17,7 @@ func main() {
 	viper.ReadInConfig()
 
 	port := ":3000"
-	dbUrl := "postgres://vladimirkuzmich@localhost:5432/gin_pro"
+	dbUrl := "postgres://vladimirkuzmich:mypassword@db:5432/gin_pro1"
 
 	r := gin.Default()
 	h := db.Init(dbUrl)

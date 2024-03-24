@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_USER: vladimirkuzmich
+      DB_NAME: gin_pro1
+      DB_PASSWORD: mypassword
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: gin_pro1
+      POSTGRES_USER: vladimirkuzmich
+      POSTGRES_PASSWORD: myrpassword
+    ports:
+      - "5432:5432"
