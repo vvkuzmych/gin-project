@@ -1,27 +1,28 @@
 package main
 
 import (
-	// "fmt"
-	// "os"
-	// "log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	
-	"github.com/vkuzmich/gin-project/pkg/common/db"
-	"github.com/vkuzmich/gin-project/pkg/todo_lists"
+	"github.com/vkuzmich/gin-project/db"
+	"github.com/vkuzmich/gin-project/routes"
+	"log"
 )
 
 func main() {
-	viper.SetConfigFile("./pkg/common/envs/.env")
-	viper.ReadInConfig()
-
-	port := ":3000"
-	dbUrl := "postgres://vladimirkuzmich:mypassword@db:5432/gin_pro1"
+	// Set up Viper to read configuration from .env file
+	viper.SetConfigFile(".env")
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatalf("Error reading config file: %v", err)
+	}
+	//
+	// Get values from Viper
+	port := viper.GetString("PORT")
+	dbUrl := viper.GetString("DB_URL")
 
 	r := gin.Default()
 	h := db.Init(dbUrl)
 
-	todo_lists.RegisterRoutes(r, h)
+	routes.RegisterRoutes(r, h)
 	r.Run(port)
 }
