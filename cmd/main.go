@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/vkuzmich/gin-project/db"
+	"github.com/vkuzmich/gin-project/middleware"
 	"github.com/vkuzmich/gin-project/routes"
 	"log"
 )
@@ -21,6 +22,7 @@ func main() {
 	dbUrl := viper.GetString("DB_URL")
 
 	r := gin.Default()
+	r.Use(middleware.RouteMiddleware())
 	h := db.Init(dbUrl)
 
 	routes.RegisterRoutes(r, h)
