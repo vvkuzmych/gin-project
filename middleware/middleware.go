@@ -18,7 +18,7 @@ import (
 
 func RouteMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Printf("C:", c)
+		
 		// Your middleware logic here
 		c.Next() // Call the next middleware/handler
 	}
