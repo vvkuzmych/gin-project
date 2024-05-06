@@ -1,11 +1,12 @@
 package db
 
 import (
-	// "fmt"
+	"fmt"
 	"log"
 
+	"github.com/vkuzmich/gin-project/internal/models"
+
 	"github.com/joho/godotenv"
-	"github.com/vkuzmich/gin-project/pkg/common/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -13,15 +14,16 @@ import (
 func Init(url string) *gorm.DB {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
+		fmt.Println("err", err)
 	}
 
 	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
-	
-    if err != nil {
-        log.Fatalln(err)
-    }
 
-    db.AutoMigrate(&models.TodoTask{})
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-    return db
+	db.AutoMigrate(&models.TodoTask{})
+
+	return db
 }

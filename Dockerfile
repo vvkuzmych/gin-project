@@ -1,5 +1,5 @@
 # Use a Golang base image
-FROM golang:latest
+FROM golang:1.21.1
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -14,10 +14,10 @@ RUN go mod download
 RUN go build -o /gin-project cmd/main.go
 
 # Expose port 8080 to the outside world
-EXPOSE 8080:80
+EXPOSE 8080
 
 # Command to run the executable
-CMD ["go", "run", "cmd/main.go"]
+CMD ["/gin-project"]
 
 
 
