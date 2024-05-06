@@ -2,18 +2,23 @@ version: '3.8'
 services:
   app:
     build: .
+    restart: always
+    ports:
+      - "8080:8080"
     environment:
-      DB_HOST: local
+      DB_HOST: db
       DB_USER: admin
-      DB_NAME: gin_pro1
-      DB_PASSWORD: admin123
+      DB_NAME: gin_pron
     depends_on:
       - db
   db:
     image: postgres:latest
+    restart: always
     environment:
-      POSTGRES_DB: gin_pro1
+      POSTGRES_DB: gin_pron
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin123
     ports:
       - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
