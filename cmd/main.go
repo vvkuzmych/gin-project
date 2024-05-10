@@ -23,7 +23,10 @@ func main() {
 
 	r := gin.Default()
 	r.Use(middleware.RouteMiddleware())
-	h := db.Init(dbUrl)
+	h, err := db.Init(dbUrl)
+	if err != nil {
+		log.Fatalf("Error initializing: %v", err)
+	}
 
 	routes.RegisterRoutes(r, h)
 	r.Run(port)

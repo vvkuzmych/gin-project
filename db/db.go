@@ -1,29 +1,47 @@
 package db
 
 import (
-	"fmt"
-	"log"
-
+	"errors"
 	"github.com/vkuzmich/gin-project/internal/models"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func Init(url string) *gorm.DB {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-		fmt.Println("err", err)
-	}
+var (
+	ConnectingToDB = ConnectionToDB
+	AutoMigrations = AutoMigration
+)
 
-	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
-
+func Init(url string) (*gorm.DB, error) {
+	db, err := ConnectingToDB(url)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
-	db.AutoMigrate(&models.TodoTask{})
+	err = AutoMigrations(db)
+	if err != nil {
+		return nil, err
+	}
 
-	return db
+	return db, nil
+}
+
+func AutoMigration(db *gorm.DB) error {
+	if db == nil {
+		return errors.New("nil database connection")
+	}
+	return db.AutoMigrate(&models.TodoTask{})
+}
+
+func ConnectionToDB(url string) (*gorm.DB, error) {
+	// Attempt to open the database connection
+	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
+	if err != nil {
+		// Return the error if opening the connection fails
+		return nil, err
+	}
+
+	// Return the database connection and nil error if successful
+	return db, nil
 }
