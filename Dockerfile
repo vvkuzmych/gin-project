@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copy the local code to the container
 COPY . .
+COPY ./db/migration/ ./db/migration/
 
 COPY go.mod go.sum ./
 RUN go mod download
