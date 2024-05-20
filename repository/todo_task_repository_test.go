@@ -123,3 +123,53 @@ func Test_TodoTaskError(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Error(t, err, "error")
 }
+
+func TestDeleteTodoTask(t *testing.T) {
+	tests := []struct {
+		name          string
+		ctx           context.Context
+		id            string
+		expectedError error
+	}{
+		{
+			name:          "Valid ID",
+			ctx:           context.Background(),
+			id:            "1",
+			expectedError: nil,
+		},
+		{
+			name:          "Invalid ID",
+			ctx:           context.Background(),
+			id:            "", // Invalid ID
+			expectedError: errors.New("Invalid id"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := repository{db: testDB}
+
+			todoTaskPayload := model.TodoTaskPayload{
+				Title:       "Test Task",
+				Description: "Test Description",
+				State:       true,
+			}
+
+			// Create a repository instance with the mocked database
+			_, err := CreateTodoTask(t, repo, todoTaskPayload)
+			assert.NoError(t, err)
+
+			// Call the function with the test context and ID
+			err = repo.DeleteTodoTask(tt.ctx, tt.id)
+
+			// Check for any errors
+			assert.Equal(t, tt.expectedError, err)
+		})
+	}
+}
+
+func CreateTodoTask(t *testing.T, repo repository, todoTaskPayload model.TodoTaskPayload) (uint, error) {
+	createdTodoTask, err := repo.CreateTodoTask(context.Background(), &todoTaskPayload)
+	assert.NoError(t, err)
+	return createdTodoTask.ID, nil
+}

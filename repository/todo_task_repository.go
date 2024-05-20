@@ -54,11 +54,10 @@ func (r repository) DeleteTodoTask(ctx context.Context, id string) error {
 
 	if err := r.db.Delete(&model.TodoTask{}, id).Error; err != nil {
 		logger.Error().Err(err).Msg("error while deleting todo_task")
-		return err
+		return errors.New("Invalid id")
 	}
 
 	logger.Info().Msg("TodoTask deleted")
-	// Return the created TodoTask with the generated ID
 	return nil
 }
 
