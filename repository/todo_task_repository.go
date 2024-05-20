@@ -1,6 +1,3 @@
-//go:build UnitTest
-// +build UnitTest
-
 package repository
 
 import (

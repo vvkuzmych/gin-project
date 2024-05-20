@@ -7,7 +7,7 @@ import (
 	"github.com/vkuzmich/gin-project/repository"
 )
 
-// repository represents a database connection.
+// TodoTaskService service represents process of data.
 type TodoTaskService interface {
 	AddTodoTask(c *gin.Context, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error)
 	DeleteTodoTask(c *gin.Context, id string) error
