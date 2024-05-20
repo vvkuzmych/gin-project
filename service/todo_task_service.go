@@ -26,7 +26,7 @@ type todoTaskService struct {
 	todoTaskRepository repository.TodoTaskRepository
 }
 
-// AddTodoTask is a handler function for adding a new todo_task.
+// AddTodoTask is a handler function for adding a new todoTask.
 func (s todoTaskService) AddTodoTask(ctx *gin.Context, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error) {
 	logger := contextLogger.ContextLog(ctx)
 

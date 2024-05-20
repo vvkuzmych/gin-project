@@ -1,0 +1,652 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>repository: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/vkuzmich/gin-project/repository/migration.go (38.2%)</option>
+				
+				<option value="file1">github.com/vkuzmich/gin-project/repository/setup_testdb_container.go (72.7%)</option>
+				
+				<option value="file2">github.com/vkuzmich/gin-project/repository/storage.go (0.0%)</option>
+				
+				<option value="file3">github.com/vkuzmich/gin-project/repository/todo_task_repository.go (70.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package repository
+
+import (
+        "database/sql"
+        "errors"
+        "fmt"
+        "github.com/spf13/viper"
+        "log"
+
+        "github.com/golang-migrate/migrate/v4"
+        scripts "github.com/golang-migrate/migrate/v4/database/postgres"
+        _ "github.com/golang-migrate/migrate/v4/source/file"
+        _ "github.com/lib/pq"
+        "gorm.io/driver/postgres"
+        "gorm.io/gorm"
+)
+
+type Logger struct {
+        enabled bool
+        multi   bool
+}
+
+// repository represents a database connection.
+type repository struct {
+        db *gorm.DB // db is a reference to the database connection
+}
+
+func (t Logger) Printf(format string, v ...interface{}) <span class="cov10" title="33">{
+        if t.enabled </span><span class="cov10" title="33">{
+                log.Printf("migrate: %s", fmt.Sprintf(format, v...))
+        }</span>
+}
+
+func (t Logger) Verbose() bool <span class="cov10" title="33">{
+        return t.multi
+}</span>
+
+func SetupConnection() (*gorm.DB, error) <span class="cov0" title="0">{
+        var db *gorm.DB
+        log.Println("Setting up database connection...")
+        domain := getDomain()
+        db, err := GetConnection(domain)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">URL := "file://./db/migration/"
+        err = ExecMigration(domain, URL, true, true)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return db, err</span>
+}
+
+func GetConnection(domain string) (*gorm.DB, error) <span class="cov1" title="1">{
+        config := &amp;gorm.Config{}
+
+        db, err := gorm.Open(postgres.Open(domain), config)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("unable to open db: %s", err)
+        }</span>
+
+        <span class="cov1" title="1">return db, nil</span>
+}
+
+func getDomain() string <span class="cov0" title="0">{
+        viper.SetConfigFile(".env")
+        err := viper.ReadInConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Error reading config file: %v", err)
+        }</span>
+
+        // Get values from Viper
+        <span class="cov0" title="0">dbUserName := viper.GetString("POSTGRES_USER")
+        dbPassword := viper.GetString("POSTGRES_PASSWORD")
+        dbHost := viper.GetString("DB_HOST")
+        dbPort := viper.GetString("DB_PORT")
+        dbName := viper.GetString("DB_NAME")
+
+        domain := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", dbHost, dbPort, dbUserName, dbName, dbPassword)
+        return domain</span>
+}
+
+// method is used to execute the migration up scripts to the
+// phanes database using golang-migrate
+func ExecMigration(connection string, url string, multi bool, loggerEnabled bool) error <span class="cov7" title="11">{
+        db, err := sql.Open("postgres", connection)
+        defer func() </span><span class="cov7" title="11">{
+                err = db.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Println("unable to close DB", err)
+                }</span>
+        }()
+
+        <span class="cov7" title="11">if err != nil </span><span class="cov0" title="0">{
+                log.Println("unable to open DB", err)
+                return err
+        }</span>
+
+        <span class="cov7" title="11">driver, err := scripts.WithInstance(db, &amp;scripts.Config{})
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("Error while loading driver", err)
+                return err
+        }</span>
+
+        // Load and execute the migration scripts using golang-migrate lib
+        <span class="cov7" title="11">m, err := migrate.NewWithDatabaseInstance(
+                url,
+                "postgres", driver)
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("Error initializing migrations", err)
+                return err
+        }</span>
+
+        // log all migrations run:
+        <span class="cov7" title="11">m.Log = Logger{multi: multi, enabled: loggerEnabled}
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("Error while loading migration scripts", err)
+                return err
+        }</span>
+        <span class="cov7" title="11">err = m.Up()
+        if err != nil &amp;&amp; !errors.Is(err, migrate.ErrNoChange) </span><span class="cov0" title="0">{
+                log.Println("Error while running migration up scripts", err)
+                return err
+        }</span>
+        <span class="cov7" title="11">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package repository
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        _ "github.com/vkuzmich/gin-project/db"
+        "log"
+        "time"
+
+        "gorm.io/gorm"
+
+        "github.com/docker/go-connections/nat"
+        "github.com/golang-migrate/migrate/v4"
+        migrationScripts "github.com/golang-migrate/migrate/v4/database/postgres"
+        _ "github.com/golang-migrate/migrate/v4/source/file"
+        _ "github.com/lib/pq"
+        "github.com/testcontainers/testcontainers-go"
+        "github.com/testcontainers/testcontainers-go/wait"
+        _ "gorm.io/driver/postgres"
+)
+
+const (
+        DB_USERNAME         = "testuser"
+        DB_PASSWORD         = "testpwd"
+        DB_NAME             = "db-test"
+        DB_PORT             = "5432"
+        DB_PROVIDER         = "postgres"
+        DB_MIGRATION_SOURCE = "file://./../db/migration/"
+)
+
+type postgresContainer struct {
+        testcontainers.Container
+        host string
+        port string
+}
+
+var connStatement string
+
+type InitiateContainerOption int
+
+const (
+        SkipRunningMigrations InitiateContainerOption = iota + 1
+)
+
+func InitiateContainerCreation(options ...InitiateContainerOption) (context.Context, *postgresContainer, *gorm.DB) <span class="cov1" title="1">{
+        ctx, container, connSt, err := CreatePostgresContainer()
+        connStatement = connSt
+        if err != nil </span><span class="cov0" title="0">{
+                panic(fmt.Sprintf("unable to setup the postgres test container: %s", err))</span>
+        }
+
+        <span class="cov1" title="1">var (
+                runMigration = true
+        )
+
+        for _, o := range options </span><span class="cov0" title="0">{
+                if o == SkipRunningMigrations </span><span class="cov0" title="0">{
+                        runMigration = false
+                }</span>
+        }
+
+        // Once the test DB container is created we need to execute the
+        // migration scripts
+        <span class="cov1" title="1">log.Println("Connection statement-&gt;", connStatement)
+        if runMigration </span><span class="cov1" title="1">{
+                err = ExecMigration(connStatement, DB_MIGRATION_SOURCE, true, true)
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(fmt.Sprintf("failure running migrations: %s", err))</span>
+                }
+        }
+        // ..
+        <span class="cov1" title="1">var db *gorm.DB
+        db, err = GetConnection(connStatement)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(fmt.Sprintf("unable to connect to the postgres test container: %s", err))</span>
+        }
+        <span class="cov1" title="1">return ctx, container, db</span>
+}
+
+// method is used to create and configure postgres container using test container
+// for mocking unit tests for the phanes. Test container manages life cycle for phanes
+// test DB container. The return type of the method is the SQL connection string.
+func CreatePostgresContainer() (context.Context, *postgresContainer, string, error) <span class="cov1" title="1">{
+        ctx := context.Background()
+        dbname := DB_NAME
+        user := DB_USERNAME
+        password := DB_PASSWORD
+        port, err := nat.NewPort("tcp", DB_PORT)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("Error creating new Network Port", err)
+        }</span>
+        <span class="cov1" title="1">containerMappedPort := port.Port()
+        container, err := setupPostgres(ctx,
+                WithPort(containerMappedPort),
+                WithInitialDatabase(user, password, dbname),
+                WithWaitStrategy(wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(15*time.Second)),
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Printf("unable to create postgres image: %v\n", err)
+                return nil, nil, "", err
+        }</span>
+
+        <span class="cov1" title="1">containerPort, err := container.MappedPort(ctx, port)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("unable to map the port for database in the test container", err)
+                return nil, nil, "", err
+        }</span>
+
+        <span class="cov1" title="1">host, err := container.Host(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("unable to assign the host for database in the test container", err)
+                return nil, nil, "", err
+        }</span>
+        <span class="cov1" title="1">connStr := DB_PROVIDER + "://" + user + ":" + password + "@" + host + ":" + containerPort.Port() + "/" + dbname + "?sslmode=disable"
+
+        container.host = host
+        container.port = containerPort.Port()
+
+        return ctx, container, connStr, err</span>
+}
+
+func (c *postgresContainer) GetHost() string <span class="cov0" title="0">{
+        return c.host
+}</span>
+
+func (c *postgresContainer) GetPort() string <span class="cov0" title="0">{
+        return c.port
+}</span>
+
+type postgresContainerOption func(req *testcontainers.ContainerRequest)
+
+func WithWaitStrategy(strategies ...wait.Strategy) func(req *testcontainers.ContainerRequest) <span class="cov1" title="1">{
+        return func(req *testcontainers.ContainerRequest) </span><span class="cov1" title="1">{
+                req.WaitingFor = wait.ForAll(strategies...).WithDeadline(1 * time.Minute)
+        }</span>
+}
+
+// method is used to configure Database port for the test container
+func WithPort(port string) func(req *testcontainers.ContainerRequest) <span class="cov1" title="1">{
+        return func(req *testcontainers.ContainerRequest) </span><span class="cov1" title="1">{
+                req.ExposedPorts = append(req.ExposedPorts, port)
+        }</span>
+}
+
+// method is used to configure Database userName, password and Database name for the test container
+func WithInitialDatabase(user string, password string, dbName string) func(req *testcontainers.ContainerRequest) <span class="cov1" title="1">{
+        return func(req *testcontainers.ContainerRequest) </span><span class="cov1" title="1">{
+                req.Env["POSTGRES_USER"] = user
+                req.Env["POSTGRES_PASSWORD"] = password
+                req.Env["POSTGRES_DB"] = dbName
+        }</span>
+}
+
+// setupPostgres creates an instance of the postgres container type
+func setupPostgres(ctx context.Context, opts ...postgresContainerOption) (*postgresContainer, error) <span class="cov1" title="1">{
+        req := testcontainers.ContainerRequest{
+                Image:        "postgres:13.8",
+                Env:          map[string]string{},
+                ExposedPorts: []string{},
+                Cmd:          []string{"postgres", "-c", "fsync=off", "-N", "500"},
+                AutoRemove:   true,
+        }
+
+        for _, opt := range opts </span><span class="cov5" title="3">{
+                opt(&amp;req)
+        }</span>
+
+        <span class="cov1" title="1">container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+                ContainerRequest: req,
+                Started:          true,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">return &amp;postgresContainer{Container: container}, nil</span>
+}
+
+func AfterEach() <span class="cov10" title="10">{
+        db, err := sql.Open("postgres", connStatement)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("Error connecting to postgres AfterEach", err)
+        }</span>
+
+        <span class="cov10" title="10">defer db.Close()
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("unable to open DB connection using connection statement..", err)
+        }</span>
+
+        <span class="cov10" title="10">driver, err := migrationScripts.WithInstance(db, &amp;migrationScripts.Config{})
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("Error while loading driver config", err)
+        }</span>
+
+        // Load and execute the migration scripts using golang-migrate lib
+        <span class="cov10" title="10">m, err := migrate.NewWithDatabaseInstance(
+                DB_MIGRATION_SOURCE,
+                "postgres", driver)
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("Error while loading migration scripts", err)
+        }</span>
+        <span class="cov10" title="10">err = m.Drop()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("Error while running migration down scripts", err)
+        }</span>
+        <span class="cov10" title="10">err = ExecMigration(connStatement, DB_MIGRATION_SOURCE, true, true)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println("Error while running migration up scripts", err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package repository
+
+import (
+        "database/sql"
+        "gorm.io/gorm"
+)
+
+type Storage interface {
+        WithTx(f func(tx *gorm.DB) error) error
+        Begin(opts ...*sql.TxOptions) *gorm.DB
+        Commit(db *gorm.DB) *gorm.DB
+        Rollback(db *gorm.DB) *gorm.DB
+        Transaction(fc func(tx *gorm.DB) error, opts ...*sql.TxOptions) (err error)
+        IsError(result *gorm.DB) bool
+}
+
+type storage struct {
+        db *gorm.DB
+}
+
+func NewStorage(db *gorm.DB) Storage <span class="cov0" title="0">{
+        return &amp;storage{db: db}
+}</span>
+
+func (s *storage) WithTx(f func(tx *gorm.DB) error) error <span class="cov0" title="0">{
+        tx := s.db.Begin()
+
+        err := f(tx)
+        if err != nil </span><span class="cov0" title="0">{
+                tx.Rollback()
+                return err
+        }</span>
+
+        <span class="cov0" title="0">err = tx.Commit().Error
+        if err != nil </span><span class="cov0" title="0">{
+                tx.Rollback()
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (s *storage) Begin(opts ...*sql.TxOptions) *gorm.DB <span class="cov0" title="0">{
+        return s.db.Begin(opts...)
+}</span>
+
+func (s *storage) Commit(db *gorm.DB) *gorm.DB <span class="cov0" title="0">{
+        return db.Commit()
+}</span>
+
+func (s *storage) Rollback(db *gorm.DB) *gorm.DB <span class="cov0" title="0">{
+        return db.Rollback()
+}</span>
+
+func (s *storage) Transaction(fc func(tx *gorm.DB) error, opts ...*sql.TxOptions) (err error) <span class="cov0" title="0">{
+        return s.db.Transaction(fc, opts...)
+}</span>
+
+func (s *storage) IsError(result *gorm.DB) bool <span class="cov0" title="0">{
+        return result.Error != nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">//go:build UnitTest
+// +build UnitTest
+
+package repository
+
+import (
+        "errors"
+        "github.com/vkuzmich/gin-project/contextLogger"
+        "github.com/vkuzmich/gin-project/internal/model"
+        "golang.org/x/net/context"
+        "gorm.io/gorm"
+)
+
+type TodoTaskRepository interface {
+        CreateTodoTask(ctx context.Context, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error)
+        DeleteTodoTask(ctx context.Context, id string) error
+        GetTodoTask(ctx context.Context, id string) (model.TodoTask, error)
+        GetAllTodoTasks(ctx context.Context) ([]model.TodoTask, error)
+        UpdateTodoTask(ctx context.Context, id string, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error)
+}
+
+func NewTodoTaskRepository(db *gorm.DB) TodoTaskRepository <span class="cov4" title="3">{
+        return repository{db}
+}</span>
+
+// CreateTodoTask is a handler function for adding a new.
+func (r repository) CreateTodoTask(ctx context.Context, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error) <span class="cov10" title="13">{
+        logger := contextLogger.ContextLog(ctx)
+
+        // Validate the todoTaskPayload
+        if err := todoTaskPayload.ValidateTodoTaskPayload(); err != nil </span><span class="cov4" title="3">{
+                return model.TodoTask{}, err
+        }</span>
+
+        <span class="cov9" title="10">todoTask := model.TodoTask{
+                Title:       todoTaskPayload.Title,
+                Description: todoTaskPayload.Description,
+                State:       todoTaskPayload.State,
+        }
+
+        if r.db == nil </span><span class="cov0" title="0">{
+                return model.TodoTask{}, errors.New("database connection is nil")
+        }</span>
+
+        <span class="cov9" title="10">result := r.db.Create(&amp;todoTask)
+        if result.Error != nil </span><span class="cov1" title="1">{
+                logger.Error().Err(result.Error).Msg("error while creating todo_task")
+                return model.TodoTask{}, result.Error
+        }</span>
+        <span class="cov8" title="9">logger.Info().Msg("TodoTask created")
+        // Return the created TodoTask with the generated ID
+        return todoTask, nil</span>
+}
+
+func (r repository) DeleteTodoTask(ctx context.Context, id string) error <span class="cov3" title="2">{
+        logger := contextLogger.ContextLog(ctx)
+
+        if err := r.db.Delete(&amp;model.TodoTask{}, id).Error; err != nil </span><span class="cov1" title="1">{
+                logger.Error().Err(err).Msg("error while deleting todo_task")
+                return errors.New("Invalid id")
+        }</span>
+
+        <span class="cov1" title="1">logger.Info().Msg("TodoTask deleted")
+        return nil</span>
+}
+
+func (r repository) GetTodoTask(ctx context.Context, id string) (model.TodoTask, error) <span class="cov4" title="3">{
+        logger := contextLogger.ContextLog(ctx)
+
+        if id == "" </span><span class="cov1" title="1">{
+                logger.Info().Str("todo_task_id", id).Msg("invalid todo_task_id")
+                return model.TodoTask{}, errors.New("Invalid id")
+        }</span>
+
+        <span class="cov3" title="2">var todoTask model.TodoTask
+        result := r.db.Where("id = ?", id).First(&amp;todoTask)
+        if result.Error != nil </span><span class="cov1" title="1">{
+                logger.Error().Err(result.Error).Msg("error while getting todo_task")
+                return model.TodoTask{}, result.Error
+        }</span>
+
+        <span class="cov1" title="1">logger.Info().Msg("TodoTask was found")
+        // Return single TodoTask
+        return todoTask, nil</span>
+}
+
+func (r repository) GetAllTodoTasks(ctx context.Context) ([]model.TodoTask, error) <span class="cov3" title="2">{
+        logger := contextLogger.ContextLog(ctx)
+
+        var todoTask []model.TodoTask
+        if err := r.db.Find(&amp;todoTask).Error; err != nil </span><span class="cov1" title="1">{
+                logger.Error().Err(err).Msg("error while fetching todo_tasks")
+                return []model.TodoTask{}, err
+        }</span>
+
+        <span class="cov1" title="1">logger.Info().Msg("Get all TodoTasks")
+        // Return array of TodoTasks
+        return todoTask, nil</span>
+}
+
+func (r repository) UpdateTodoTask(ctx context.Context, id string, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error) <span class="cov0" title="0">{
+        logger := contextLogger.ContextLog(ctx)
+
+        var todoTask model.TodoTask
+
+        if err := r.db.Find(&amp;todoTask, id).Error; err != nil </span><span class="cov0" title="0">{
+                logger.Error().Err(err).Msg("error while getting todo_task")
+                return model.TodoTask{}, err
+        }</span>
+
+        <span class="cov0" title="0">todoTask.Title = todoTaskPayload.Title
+        todoTask.Description = todoTaskPayload.Description
+        todoTask.State = todoTaskPayload.State
+
+        result := r.db.Model(model.TodoTask{}).Where("id = ?", id).Updates(&amp;todoTask)
+        if result.Error != nil </span><span class="cov0" title="0">{
+                logger.Error().Err(result.Error).Str("todo_task_id", id).Msgf("Error while updating todo_task")
+                return model.TodoTask{}, result.Error
+        }</span>
+        <span class="cov0" title="0">logger.Info().Msg("Get updated TodoTask")
+        // Return the created TodoTask with the generated ID
+        return todoTask, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
