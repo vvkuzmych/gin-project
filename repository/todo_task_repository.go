@@ -64,14 +64,21 @@ func (r repository) DeleteTodoTask(ctx context.Context, id string) error {
 func (r repository) GetTodoTask(ctx context.Context, id string) (model.TodoTask, error) {
 	logger := contextLogger.ContextLog(ctx)
 
+	if id == "" {
+		logger.Info().Str("todo_task_id", id).Msg("error while getting todo_task")
+		return model.TodoTask{}, errors.New("Invalid id")
+	}
+
 	var todoTask model.TodoTask
-	if err := r.db.First(&todoTask, id).Error; err != nil {
-		logger.Error().Err(err).Msg("error while getting todo_task")
-		return model.TodoTask{}, err
+	//result := r.db.First(&todoTask, id)
+	result := r.db.Where("id = ?", id).First(&todoTask)
+	if result.Error != nil {
+		logger.Error().Err(result.Error).Msg("error while getting todo_task")
+		return model.TodoTask{}, result.Error
 	}
 
 	logger.Info().Msg("TodoTask was found")
-	// Return the created TodoTask with the generated ID
+	// Return single TodoTask
 	return todoTask, nil
 }
 
@@ -80,12 +87,12 @@ func (r repository) GetTodoTasks(ctx context.Context) ([]model.TodoTask, error) 
 
 	var todoTask []model.TodoTask
 	if err := r.db.Find(&todoTask).Error; err != nil {
-		logger.Error().Err(err).Msg("error while getting todo_task")
+		logger.Error().Err(err).Msg("error while getting todo_tasks")
 		return []model.TodoTask{}, err
 	}
 
 	logger.Info().Msg("Get all TodoTasks")
-	// Return the created TodoTask with the generated ID
+	// Return array of TodoTasks
 	return todoTask, nil
 }
 

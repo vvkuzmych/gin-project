@@ -106,7 +106,7 @@ func TestCreateTodoTask(t *testing.T) {
 	}
 }
 
-func Test_TodoTaskError(t *testing.T) {
+func TestCreateTodoTaskError(t *testing.T) {
 	mockedDB, mock := GetMockedDBInstance()
 	mainDB := testDB
 	testDB = mockedDB
@@ -164,6 +164,73 @@ func TestDeleteTodoTask(t *testing.T) {
 
 			// Check for any errors
 			assert.Equal(t, tt.expectedError, err)
+		})
+		t.Cleanup(func() {
+			AfterEach()
+		})
+	}
+}
+
+func TestGetTodoTask(t *testing.T) {
+	tests := []struct {
+		name           string
+		ctx            context.Context
+		id             string
+		expectedError  error
+		expectedResult model.TodoTask
+	}{
+		{
+			name:          "Valid ID",
+			ctx:           context.Background(),
+			id:            "1",
+			expectedError: nil,
+			expectedResult: model.TodoTask{
+				Title:       "Test Task",
+				Description: "Test Description",
+				State:       true,
+			},
+		},
+		{
+			name:           "Invalid ID",
+			ctx:            context.Background(),
+			id:             "", // Invalid ID
+			expectedError:  errors.New("Invalid id"),
+			expectedResult: model.TodoTask{},
+		},
+		{
+			name:           "Invalid ID",
+			ctx:            context.Background(),
+			id:             "40", // Invalid ID
+			expectedError:  errors.New("record not found"),
+			expectedResult: model.TodoTask{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := repository{db: testDB}
+
+			todoTaskPayload := model.TodoTaskPayload{
+				Title:       "Test Task",
+				Description: "Test Description",
+				State:       true,
+			}
+
+			// Create a repository instance with the mocked database
+			_, err := CreateTodoTask(t, repo, todoTaskPayload)
+			assert.NoError(t, err)
+
+			// Call the function with the test context and ID
+			result, resultErr := repo.GetTodoTask(tt.ctx, tt.id)
+
+			// Check for any errors
+			assert.Equal(t, tt.expectedError, resultErr)
+			assert.Equal(t, tt.expectedResult.Title, result.Title)
+			assert.Equal(t, tt.expectedResult.Description, result.Description)
+			assert.Equal(t, tt.expectedResult.State, result.State)
+		})
+		t.Cleanup(func() {
+			AfterEach()
 		})
 	}
 }
