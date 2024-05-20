@@ -12,7 +12,7 @@ type TodoTaskRepository interface {
 	CreateTodoTask(ctx context.Context, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error)
 	DeleteTodoTask(ctx context.Context, id string) error
 	GetTodoTask(ctx context.Context, id string) (model.TodoTask, error)
-	GetTodoTasks(ctx context.Context) ([]model.TodoTask, error)
+	GetAllTodoTasks(ctx context.Context) ([]model.TodoTask, error)
 	UpdateTodoTask(ctx context.Context, id string, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error)
 }
 
@@ -70,7 +70,6 @@ func (r repository) GetTodoTask(ctx context.Context, id string) (model.TodoTask,
 	}
 
 	var todoTask model.TodoTask
-	//result := r.db.First(&todoTask, id)
 	result := r.db.Where("id = ?", id).First(&todoTask)
 	if result.Error != nil {
 		logger.Error().Err(result.Error).Msg("error while getting todo_task")
@@ -82,12 +81,12 @@ func (r repository) GetTodoTask(ctx context.Context, id string) (model.TodoTask,
 	return todoTask, nil
 }
 
-func (r repository) GetTodoTasks(ctx context.Context) ([]model.TodoTask, error) {
+func (r repository) GetAllTodoTasks(ctx context.Context) ([]model.TodoTask, error) {
 	logger := contextLogger.ContextLog(ctx)
 
 	var todoTask []model.TodoTask
 	if err := r.db.Find(&todoTask).Error; err != nil {
-		logger.Error().Err(err).Msg("error while getting todo_tasks")
+		logger.Error().Err(err).Msg("error while fetching todo_tasks")
 		return []model.TodoTask{}, err
 	}
 

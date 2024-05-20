@@ -9,6 +9,7 @@ import (
 	"github.com/vkuzmich/gin-project/internal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"strconv"
 	"testing"
 )
 
@@ -232,6 +233,75 @@ func TestGetTodoTask(t *testing.T) {
 		t.Cleanup(func() {
 			AfterEach()
 		})
+	}
+}
+
+func TestGetListTodoTasks(t *testing.T) {
+	repo := repository{db: testDB}
+	CreateTodoTasksList(t, repo)
+
+	tests := []struct {
+		name           string
+		ctx            context.Context
+		expectedError  error
+		expectedResult []model.TodoTask
+	}{
+		{
+			name:          "Successfully get list of todo_tasks",
+			ctx:           context.Background(),
+			expectedError: nil,
+			expectedResult: []model.TodoTask{
+				{
+					Title:       "Test Task 1",
+					Description: "Test Description 1",
+					State:       true,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// Call the function with the test context and ID
+			result, resultErr := repo.GetAllTodoTasks(tt.ctx)
+
+			// Check for any errors
+			assert.Equal(t, tt.expectedError, resultErr)
+			assert.Equal(t, tt.expectedResult[0].Title, result[0].Title)
+			assert.Equal(t, tt.expectedResult[0].Description, result[0].Description)
+			assert.Equal(t, tt.expectedResult[0].State, result[0].State)
+			assert.Equal(t, 3, len(result))
+		})
+		t.Cleanup(func() {
+			AfterEach()
+		})
+	}
+}
+
+func TestGetAllTrialsError(t *testing.T) {
+	mockedDB, mock := GetMockedDBInstance()
+	mainDB := testDB
+	testDB = mockedDB
+	var mockTodoTaskRepository = NewTodoTaskRepository(testDB)
+
+	mock.ExpectQuery(`SELECT * FROM "todo_tasks"`).WillReturnError(fmt.Errorf("error while fetching todo_tasks"))
+
+	_, err := mockTodoTaskRepository.GetAllTodoTasks(context.Background())
+	testDB = mainDB
+	assert.NotNil(t, err)
+}
+
+func CreateTodoTasksList(t *testing.T, repo repository) {
+	// Create a repository instance with the mocked database
+	for i := 1; i <= 3; i++ {
+		todoTaskPayload := model.TodoTaskPayload{
+			Title:       "Test Task " + strconv.Itoa(i),
+			Description: "Test Description " + strconv.Itoa(i),
+			State:       true,
+		}
+		_, err := CreateTodoTask(t, repo, todoTaskPayload)
+		assert.NoError(t, err)
 	}
 }
 
