@@ -1,3 +1,6 @@
+//go:build UnitTest
+// +build UnitTest
+
 package repository
 
 import (
@@ -279,7 +282,7 @@ func TestGetListTodoTasks(t *testing.T) {
 	}
 }
 
-func TestGetAllTrialsError(t *testing.T) {
+func TestGetAllTodoTasksError(t *testing.T) {
 	mockedDB, mock := GetMockedDBInstance()
 	mainDB := testDB
 	testDB = mockedDB
@@ -290,6 +293,97 @@ func TestGetAllTrialsError(t *testing.T) {
 	_, err := mockTodoTaskRepository.GetAllTodoTasks(context.Background())
 	testDB = mainDB
 	assert.NotNil(t, err)
+}
+
+func TestUpdateTodoTask(t *testing.T) {
+	type world struct {
+		todoTaskPayload model.TodoTaskPayload
+	}
+	tests := []struct {
+		name            string
+		ctx             context.Context
+		todoTaskPayload *model.TodoTaskPayload
+		id              string
+		expectedError   error
+		setup           func(t *testing.T, d *world)
+	}{
+		{
+			name:          "Successful update",
+			ctx:           context.Background(),
+			expectedError: nil,
+			id:            "1",
+			setup: func(t *testing.T, d *world) {
+				d.todoTaskPayload.State = true
+			},
+		},
+		{
+			name:          "invalid id",
+			ctx:           context.Background(),
+			expectedError: errors.New("Invalid id"),
+			id:            "",
+			setup: func(t *testing.T, d *world) {
+				d.todoTaskPayload.State = true
+			},
+		},
+		{
+			name:          "invalid Payload title",
+			ctx:           context.Background(),
+			id:            "1",
+			expectedError: errors.New("validation fails: Key: 'TodoTask.Title' Error:Field validation for 'Title' failed on the 'required' tag"),
+			setup: func(t *testing.T, d *world) {
+				d.todoTaskPayload.Title = ""
+				d.todoTaskPayload.State = true
+			},
+		},
+		{
+			name:          "invalid Payload description",
+			ctx:           context.Background(),
+			id:            "1",
+			expectedError: errors.New("validation fails: Key: 'TodoTask.Description' Error:Field validation for 'Description' failed on the 'required' tag"),
+			setup: func(t *testing.T, d *world) {
+				d.todoTaskPayload.Description = ""
+				d.todoTaskPayload.State = true
+			},
+		},
+		{
+			name:          "invalid Payload state",
+			ctx:           context.Background(),
+			id:            "1",
+			expectedError: errors.New("validation fails: Key: 'TodoTask.State' Error:Field validation for 'State' failed on the 'required' tag"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &world{
+				todoTaskPayload: model.TodoTaskPayload{
+					Title:       "New Task",
+					Description: "New Description",
+				},
+			}
+
+			if tt.setup != nil {
+				tt.setup(t, d)
+			}
+			// Create a repository instance with the mocked database
+			repo := repository{db: testDB}
+			CreateTodoTasksList(t, repo)
+			// Call the function with the test payload and context
+			result, err := repo.UpdateTodoTask(tt.ctx, tt.id, &d.todoTaskPayload)
+
+			//Check the error returned
+			assert.Equal(t, tt.expectedError, err)
+			if tt.expectedError == nil {
+				assert.Equal(t, d.todoTaskPayload.Title, result.Title)
+				assert.Equal(t, d.todoTaskPayload.Description, result.Description)
+				assert.Equal(t, d.todoTaskPayload.State, result.State)
+			}
+
+			t.Cleanup(func() {
+				AfterEach()
+			})
+		})
+	}
 }
 
 func CreateTodoTasksList(t *testing.T, repo repository) {

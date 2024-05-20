@@ -8,9 +8,9 @@ import (
 
 type TodoTask struct {
 	gorm.Model         // adds ID, created_at etc.
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	State       bool   `json:"state"`
+	Title       string `json:"title" validate:"required"`
+	Description string `json:"description" validate:"required"`
+	State       bool   `json:"state" validate:"required"`
 }
 
 type TodoTaskPayload struct {
@@ -23,6 +23,22 @@ type TodoTaskPayload struct {
 func (t *TodoTaskPayload) ValidateTodoTaskPayload() error {
 	v := validator.New()
 	err := v.Struct(t)
+	if err != nil {
+		return fmt.Errorf("validation fails: %v", err)
+	}
+	return nil
+}
+
+// Validator instance
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
+}
+
+// ValidateTodoTask validates the TodoTask struct
+func ValidateTodoTask(todoTask TodoTask) error {
+	err := validate.Struct(todoTask)
 	if err != nil {
 		return fmt.Errorf("validation fails: %v", err)
 	}

@@ -1,3 +1,6 @@
+//go:build UnitTest
+// +build UnitTest
+
 package repository
 
 import (
@@ -33,10 +36,6 @@ func (r repository) CreateTodoTask(ctx context.Context, todoTaskPayload *model.T
 		Title:       todoTaskPayload.Title,
 		Description: todoTaskPayload.Description,
 		State:       todoTaskPayload.State,
-	}
-
-	if r.db == nil {
-		return model.TodoTask{}, errors.New("database connection is nil")
 	}
 
 	result := r.db.Create(&todoTask)
@@ -98,18 +97,30 @@ func (r repository) GetAllTodoTasks(ctx context.Context) ([]model.TodoTask, erro
 func (r repository) UpdateTodoTask(ctx context.Context, id string, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error) {
 	logger := contextLogger.ContextLog(ctx)
 
-	var todoTask model.TodoTask
-
-	if err := r.db.Find(&todoTask, id).Error; err != nil {
-		logger.Error().Err(err).Msg("error while getting todo_task")
-		return model.TodoTask{}, err
+	if id == "" {
+		logger.Info().Str("todo_task_id", id).Msg("invalid todo_task_id")
+		return model.TodoTask{}, errors.New("Invalid id")
 	}
 
+	var todoTask model.TodoTask
+	res := r.db.Where("id = ?", id).First(&todoTask)
+	if res.Error != nil {
+		logger.Error().Err(res.Error).Msg("error while getting todo_task")
+		return model.TodoTask{}, res.Error
+	}
+
+	logger.Info().Msg("mapping found todo_task to update fields")
 	todoTask.Title = todoTaskPayload.Title
 	todoTask.Description = todoTaskPayload.Description
 	todoTask.State = todoTaskPayload.State
 
-	result := r.db.Model(model.TodoTask{}).Where("id = ?", id).Updates(&todoTask)
+	// Validate the updated todoTask
+	if err := model.ValidateTodoTask(todoTask); err != nil {
+		logger.Error().Err(err).Msg("validation failed for todo_task")
+		return model.TodoTask{}, err
+	}
+	// update todoTask
+	result := r.db.Model(&todoTask).Updates(todoTask)
 	if result.Error != nil {
 		logger.Error().Err(result.Error).Str("todo_task_id", id).Msgf("Error while updating todo_task")
 		return model.TodoTask{}, result.Error
