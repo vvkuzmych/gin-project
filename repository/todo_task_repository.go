@@ -65,7 +65,7 @@ func (r repository) GetTodoTask(ctx context.Context, id string) (model.TodoTask,
 	logger := contextLogger.ContextLog(ctx)
 
 	if id == "" {
-		logger.Info().Str("todo_task_id", id).Msg("error while getting todo_task")
+		logger.Info().Str("todo_task_id", id).Msg("invalid todo_task_id")
 		return model.TodoTask{}, errors.New("Invalid id")
 	}
 
