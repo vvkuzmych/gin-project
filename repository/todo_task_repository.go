@@ -1,16 +1,12 @@
 package repository
 
 import (
+	"errors"
 	"github.com/vkuzmich/gin-project/contextLogger"
 	"github.com/vkuzmich/gin-project/internal/model"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 )
-
-// repository represents a database connection.
-type repository struct {
-	db *gorm.DB // db is a reference to the database connection
-}
 
 type TodoTaskRepository interface {
 	CreateTodoTask(ctx context.Context, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error)
@@ -28,15 +24,25 @@ func NewTodoTaskRepository(db *gorm.DB) TodoTaskRepository {
 func (r repository) CreateTodoTask(ctx context.Context, todoTaskPayload *model.TodoTaskPayload) (model.TodoTask, error) {
 	logger := contextLogger.ContextLog(ctx)
 
+	// Validate the todoTaskPayload
+	if err := todoTaskPayload.ValidateTodoTaskPayload(); err != nil {
+		return model.TodoTask{}, err
+	}
+
 	todoTask := model.TodoTask{
 		Title:       todoTaskPayload.Title,
 		Description: todoTaskPayload.Description,
 		State:       todoTaskPayload.State,
 	}
 
-	if err := r.db.Create(&todoTask).Error; err != nil {
-		logger.Error().Err(err).Msg("error while creating todo_task")
-		return model.TodoTask{}, err
+	if r.db == nil {
+		return model.TodoTask{}, errors.New("database connection is nil")
+	}
+
+	result := r.db.Create(&todoTask)
+	if result.Error != nil {
+		logger.Error().Err(result.Error).Msg("error while creating todo_task")
+		return model.TodoTask{}, result.Error
 	}
 	logger.Info().Msg("TodoTask created")
 	// Return the created TodoTask with the generated ID
