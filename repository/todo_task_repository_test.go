@@ -267,7 +267,7 @@ func TestGetListTodoTasks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// Call the function with the test context
-			result, resultErr := repo.GetAllTodoTasks(tt.ctx)
+			result, resultErr := repo.GetTodoTasks(tt.ctx)
 
 			// Check for any errors
 			assert.Equal(t, tt.expectedError, resultErr)
@@ -290,7 +290,7 @@ func TestGetAllTodoTasksError(t *testing.T) {
 
 	mock.ExpectQuery(`SELECT * FROM "todo_tasks"`).WillReturnError(fmt.Errorf("error while fetching todo_tasks"))
 
-	_, err := mockTodoTaskRepository.GetAllTodoTasks(context.Background())
+	_, err := mockTodoTaskRepository.GetTodoTasks(context.Background())
 	testDB = mainDB
 	assert.NotNil(t, err)
 }
