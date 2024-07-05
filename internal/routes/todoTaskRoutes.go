@@ -3,13 +3,11 @@ package routes
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/vkuzmich/gin-project/contextLogger"
-	"github.com/vkuzmich/gin-project/internal/model"
+	"github.com/vkuzmich/gin-project/internal/contextLogger"
+	"github.com/vkuzmich/gin-project/internal/pkg/model"
+	"github.com/vkuzmich/gin-project/internal/pkg/service"
 	"gorm.io/gorm"
 	"net/http"
-
-	//"github.com/go-playground/validator/v10"
-	"github.com/vkuzmich/gin-project/service"
 )
 
 func RegisterTodoTaskHandlers(

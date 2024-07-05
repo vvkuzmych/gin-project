@@ -3,7 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
-	"github.com/vkuzmich/gin-project/internal/model"
+	"github.com/vkuzmich/gin-project/internal/pkg/model"
 	"strings"
 
 	"gorm.io/driver/postgres"

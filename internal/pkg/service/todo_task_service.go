@@ -2,9 +2,9 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vkuzmich/gin-project/contextLogger"
-	"github.com/vkuzmich/gin-project/internal/model"
-	"github.com/vkuzmich/gin-project/repository"
+	"github.com/vkuzmich/gin-project/internal/contextLogger"
+	"github.com/vkuzmich/gin-project/internal/pkg/model"
+	"github.com/vkuzmich/gin-project/internal/pkg/repository"
 )
 
 // TodoTaskService service represents process of data.

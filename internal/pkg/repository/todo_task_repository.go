@@ -2,8 +2,8 @@ package repository
 
 import (
 	"errors"
-	"github.com/vkuzmich/gin-project/contextLogger"
-	"github.com/vkuzmich/gin-project/internal/model"
+	"github.com/vkuzmich/gin-project/internal/contextLogger"
+	"github.com/vkuzmich/gin-project/internal/pkg/model"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 )

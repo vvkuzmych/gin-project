@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/vkuzmich/gin-project/repository"
-	"github.com/vkuzmich/gin-project/service"
+	"github.com/vkuzmich/gin-project/internal/pkg/repository"
+	"github.com/vkuzmich/gin-project/internal/pkg/service"
 	"gorm.io/gorm"
 )
 

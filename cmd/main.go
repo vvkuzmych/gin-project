@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/spf13/viper"
-	"github.com/vkuzmich/gin-project/db"
 	"github.com/vkuzmich/gin-project/internal/app"
+	"github.com/vkuzmich/gin-project/internal/db"
 	"github.com/vkuzmich/gin-project/internal/http"
 	"log"
 )
