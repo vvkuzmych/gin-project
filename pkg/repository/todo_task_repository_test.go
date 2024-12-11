@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/vkuzmich/gin-project/internal/pkg/model"
+	"github.com/vkuzmich/gin-project/pkg/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"strconv"

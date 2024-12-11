@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/vkuzmich/gin-project/internal/app"
 	"github.com/vkuzmich/gin-project/internal/http"
-	"github.com/vkuzmich/gin-project/internal/pkg/db"
+	"github.com/vkuzmich/gin-project/pkg/db"
 	"log"
 )
 

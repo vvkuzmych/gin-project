@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 	"github.com/vkuzmich/gin-project/internal/contextLogger"
-	"github.com/vkuzmich/gin-project/internal/pkg/model"
+	"github.com/vkuzmich/gin-project/pkg/model"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 )
