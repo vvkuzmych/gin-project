@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/vkuzmich/gin-project/internal/pkg/db"
+	_ "github.com/vkuzmich/gin-project/pkg/db"
 	"log"
 	"time"
 
